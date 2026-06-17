@@ -2,7 +2,7 @@
   "name": "claude-rtl-code",
   "displayName": "Claude RTL Code",
   "description": "Zero-config RTL for Claude Code by Adir Yadaev. Hebrew, Arabic & Persian auto-detected per message. Install and it just works.",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "publisher": "AdirYad",
   "license": "MIT",
   "repository": {
@@ -52,6 +52,8 @@
   "scripts": {
     "build": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
+    "test": "node test/lifecycle.test.mjs",
+    "typecheck": "tsc --noEmit",
     "package": "vsce package",
     "publish": "vsce publish"
   },
