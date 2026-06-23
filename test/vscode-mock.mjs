@@ -16,6 +16,19 @@ export function _reset() {
 let appName = "Visual Studio Code";
 export function _setAppName(name) { appName = name; }
 
+// Mock of vscode.extensions.getExtension — lets a test register where Claude
+// Code "lives" so we can exercise fork dir discovery (Antigravity IDE, etc.).
+let claudeExtensionPath = undefined;
+export function _setClaudeExtensionPath(p) { claudeExtensionPath = p; }
+export const extensions = {
+  getExtension(id) {
+    if (id === "anthropic.claude-code" && claudeExtensionPath) {
+      return { extensionPath: claudeExtensionPath };
+    }
+    return undefined;
+  },
+};
+
 class MemState {
   constructor(initial = {}) { this.store = { ...initial }; }
   get(key, dflt) { return key in this.store ? this.store[key] : dflt; }
@@ -80,5 +93,5 @@ export const workspace = {
 };
 
 export default {
-  window, commands, env, workspace, StatusBarAlignment, RelativePattern, Uri,
+  window, commands, env, workspace, extensions, StatusBarAlignment, RelativePattern, Uri,
 };

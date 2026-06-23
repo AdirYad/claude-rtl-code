@@ -15,6 +15,7 @@ import { getExtensionDirs, getIdeName } from "../utils/platform";
 export async function findClaudeCodeInstallations(): Promise<ClaudeCodeInstallation[]> {
   const extensionDirs = getExtensionDirs();
   const installations: ClaudeCodeInstallation[] = [];
+  const seen = new Set<string>();
 
   for (const extDir of extensionDirs) {
     try {
@@ -25,9 +26,13 @@ export async function findClaudeCodeInstallations(): Promise<ClaudeCodeInstallat
         const version = dir.replace(CLAUDE_CODE_PREFIX, "").replace(/-.*$/, "");
         const fullPath = path.join(extDir, dir);
 
+        // The discovered fork dir can overlap a hardcoded one — patch each once.
+        if (seen.has(fullPath)) continue;
+
         // Verify webview directory exists (skips half-extracted updates)
         try {
           await fs.access(path.join(fullPath, "webview"));
+          seen.add(fullPath);
           installations.push({
             path: fullPath,
             version,

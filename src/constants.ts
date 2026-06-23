@@ -24,6 +24,10 @@ export const IDE_EXTENSION_DIRS: Record<string, string[]> = {
 // Claude Code extension ID prefix
 export const CLAUDE_CODE_PREFIX = "anthropic.claude-code-";
 
+// Claude Code extension identifier (publisher.name), used to ask the running
+// IDE where Claude Code is installed — fork-agnostic, unlike the dir names above.
+export const CLAUDE_CODE_EXTENSION_ID = "anthropic.claude-code";
+
 // Webview files relative to Claude Code extension root
 export const WEBVIEW_CSS = "webview/index.css";
 export const WEBVIEW_JS = "webview/index.js";

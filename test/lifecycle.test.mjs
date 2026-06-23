@@ -30,6 +30,7 @@ const repoRoot = resolve(__dirname, "..");
 const M = await import(pathToFileURL(join(__dirname, "vscode-mock.mjs")).href);
 const vscodeMock = {
   window: M.window, commands: M.commands, env: M.env, workspace: M.workspace,
+  extensions: M.extensions,
   StatusBarAlignment: M.StatusBarAlignment, RelativePattern: M.RelativePattern, Uri: M.Uri,
 };
 const origLoad = Module._load;
@@ -137,6 +138,29 @@ try {
   assert(!isPatched(v1.css), "Disable removed patch from v1 css");
   assert(!isPatched(v2.css), "Disable removed patch from v2 css");
   await ext.deactivate();
+
+  // 5. Fork IDE with a NON-standard extensions dir (e.g. Antigravity IDE).
+  // The hardcoded dir list can't see it; discovery via the IDE's own extension
+  // registry must. Regression for the "No Claude Code installations" report.
+  const forkRoot = join(
+    home, ".antigravity-ide", "extensions", "anthropic.claude-code-2.1.300-win32-x64"
+  );
+  const forkWebview = join(forkRoot, "webview");
+  mkdirSync(forkWebview, { recursive: true });
+  const forkCss = join(forkWebview, "index.css");
+  const forkJs = join(forkWebview, "index.js");
+  writeFileSync(forkCss, "body{color:red}\n", "utf-8");
+  writeFileSync(forkJs, "console.log('cc');\n", "utf-8");
+  M._setClaudeExtensionPath(forkRoot); // the IDE reports CC lives here
+  assert(!isPatched(forkJs), "fork-IDE CC starts un-patched");
+  M._reset();
+  ctx = M.makeContext({ "claude-rtl.enabled": true, "claude-rtl.firstRunDone": true });
+  await ext.activate(ctx);
+  await sleep(100);
+  assert(isPatched(forkCss), "fork-IDE CC CSS patched via extension-registry discovery");
+  assert(isPatched(forkJs), "fork-IDE CC JS patched via extension-registry discovery");
+  await ext.deactivate();
+  M._setClaudeExtensionPath(undefined);
 } finally {
   Module._load = origLoad;
   process.env.USERPROFILE = origUserProfile;
